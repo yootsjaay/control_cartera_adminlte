@@ -6,7 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PolizasController;
 use App\Http\Controllers\CompaniasController;
-
+use App\Http\Controllers\SegurosController;
 
 // Ruta principal que redirige al login
 Route::get('/', function () {
@@ -32,25 +32,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/user', UserController::class)->except(['index']);
         // Rutas de roles (solo admin puede gestionar roles)
         Route::resource('/roles', RoleController::class);
-        // Rutas de polizas (solo admin puede gestionar polizas)
+        // Rutas de pólizas (solo admin puede gestionar pólizas)
         Route::resource('/polizas', PolizasController::class);
         Route::resource('/companias', CompaniasController::class);
-        
+        Route::resource('/seguros', SegurosController::class);
+
     });
 
     // Rutas específicas para el rol `user`
     Route::middleware('role:user')->group(function () {
-        // Rutas de polizas (solo user puede ver polizas)
-        Route::get('/polizas', [PolizasController::class, 'index'])->name('polizas.index');
-        Route::get('/polizas/{poliza}', [PolizasController::class, 'show'])->name('polizas.show');
-        Route::get('/polizas/{poliza}/edit', [PolizasController::class, 'edit'])->name('polizas.edit');
-        Route::patch('/polizas/{poliza}', [PolizasController::class, 'update'])->name('polizas.update');
-        Route::delete('/polizas/{poliza}', [PolizasController::class, 'destroy'])->name('polizas.destroy');
-        Route::get('/polizas/create', [PolizasController::class, 'create'])->name('polizas.create');
-        Route::post('/polizas', [PolizasController::class,'store'])->name('polizas.store');
-
+        // Rutas de pólizas (solo user puede ver pólizas)
+        Route::resource('/polizas', PolizasController::class)->only(['index', 'show']);
     });
-  
 
     // Rutas accesibles por `admin` y `user` (ver usuarios)
     Route::middleware('permission:ver usuarios')->group(function () {
@@ -72,18 +65,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/user/{user}', [UserController::class, 'destroy'])->name('user.destroy');
     });
 
-    // Rutas de polizas
+    // Rutas de pólizas
     Route::middleware('permission:ver pólizas')->group(function () {
         Route::get('/polizas', [PolizasController::class, 'index'])->name('polizas.index');
         Route::get('/polizas/{poliza}', [PolizasController::class, 'show'])->name('polizas.show');
-
     });
     Route::middleware('permission:crear pólizas')->group(function () {
         Route::get('/polizas/create', [PolizasController::class, 'create'])->name('polizas.create');
         Route::post('/polizas', [PolizasController::class,'store'])->name('polizas.store');
     });
+    Route::middleware('permission:editar pólizas')->group(function () {
+        Route::get('/polizas/{poliza}/edit', [PolizasController::class, 'edit'])->name('polizas.edit');
+        Route::patch('/polizas/{poliza}', [PolizasController::class, 'update'])->name('polizas.update');
+    });
+    Route::middleware('permission:eliminar pólizas')->group(function () {
+        Route::delete('/polizas/{poliza}', [PolizasController::class, 'destroy'])->name('polizas.destroy');
+    });
 });
 
 // Rutas de autenticación
 require __DIR__.'/auth.php';
-

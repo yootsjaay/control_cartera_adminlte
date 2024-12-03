@@ -339,11 +339,11 @@ return [
                 'text' => 'Nueva Póliza',
                 'url'  => '/polizas/create',
                 'icon' => 'fas fa-plus',
-                'can'  => 'crear pólizas',
+                'can'  => 'crear pólizas',  
             ],
             [
-                'text' => 'Renovaciones de Pólizas',
-                'url'  => 'admin/policies/renewals',
+                'text' => 'Edita Poliza',
+                'url'  => '/polizas/edit',
                 'icon' => 'fas fa-redo',
                 'can'  => 'renovacion de pólizas',
             ],
@@ -418,7 +418,7 @@ return [
             ],
             [
                 'text' => 'Seguros',
-                'url'  => 'admin/reports/clients',
+                'url'  => '/seguros',
                 'icon' => 'fas fa-shield-halved',
                 'can'  => 'ver reportes',
 
