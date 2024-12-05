@@ -10,6 +10,9 @@ use App\Models\TipoSeguro;
 use App\Models\Poliza;
 use App\Models\Agente;
 use App\Models\PagosSubsecuente;
+use Illuminate\Support\Facades\Storage;
+
+use thiagoalessio\TesseractOCR\TesseractOCR;
 use DateTime;
 use Exception;
 
@@ -44,108 +47,99 @@ class PolizasController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // Validar pdf
-        $request->validate([
-           'pdf.*' => 'mimes:pdf|max:10000',
-            'compania_id' => 'required|exists:companias,id',
-            'tipo_seguro_id' => 'required|exists:tipo_seguros,id',
-        ]);
-    
-        $compania_id = $request->input('compania_id');
-        $compania = Compania::find($compania_id);
-    
-        foreach ($request->file('pdf') as $file) {
-            // Almacenar el archivo PDF en el storage
-            $pdfPath = $file->store('Polizas', 'public');
-    
-            // Obtener el archivo PDF subido y usar la librería de parser
-            $parser = new \Smalot\PdfParser\Parser(); // Asegúrate de tener el parser importado correctamente
-    
-            try {
-                $pdfParsed = $parser->parseFile(storage_path('app/public/' . $pdfPath));
-                $pages = $pdfParsed->getPages();
-                $allText = '';
-    
-                $selectedPages = [0, 3]; // Páginas del 1 al 4 
-                foreach ($pages as $index => $page) {
-                    if (in_array($index, $selectedPages)) {
-                        $allText .= "Pagina " . ($index + 1) . "\n";
-                        $allText .= $page->getText() . "\n";
-    
-                        if ($index == 3) {
-                            $datosPago = $this->extraerDatosHdi($page->getText());
-                            \Log::info('Datos Extraidos Exitosamente', $datosPago);
-                        }
+
+
+        public function store(Request $request)
+        {
+            // Validar PDF
+            $request->validate([
+                'pdf.*' => 'mimes:pdf|max:10000',
+                'compania_id' => 'required|exists:companias,id',
+                'tipo_seguro_id' => 'required|exists:tipo_seguros,id',
+            ]);
+
+            $compania_id = $request->input('compania_id');
+            $compania = Compania::find($compania_id);
+
+            foreach ($request->file('pdf') as $file) {
+                // Almacenar el archivo PDF en el storage
+                $pdfPath = $file->store('Polizas', 'public');
+
+                // Inicializar el parser de PDF
+                $parser = new Parser();
+
+                try {
+                    //  parsear el PDF con el parser
+                    $pdfParsed = $parser->parseFile(storage_path('app/public/' . $pdfPath));
+                    $pages = $pdfParsed->getPages();
+                    $allText = '';
+
+                    foreach ($pages as $page) {
+                        $allText .= $page->getText();
                     }
+              
+
+                    // Seleccionar la compañía para extraer datos específicos
+                    switch ($compania->nombre) {
+                        case 'HDI Seguros':
+                            $datos = $this->extraerDatosHdi($allText);
+                            break;
+                        case 'Banorte Seguros':
+                            $datos = $this->extraerDatosBanorte($allText);
+                            break;
+                        default:
+                            \Log::error('Compañía de seguros no identificada: ' . $compania->nombre);
+                            return redirect()->back()->with('error', 'Compañía de seguros no identificada');
+                    }
+
+                    $cliente = Cliente::firstOrCreate(
+                        ['rfc' => $datos['rfc']],
+                        ['nombre_completo' => $datos['nombre_cliente']]
+                    );
+
+                    if (preg_match('/Vigencia:\s*Desde las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})\s*Hasta las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})/', $allText, $matches)) {
+                        $datos['vigencia_inicio'] = $this->convertirFecha($matches[1]);
+                        $datos['vigencia_fin'] = $this->convertirFecha($matches[2]);
+                    } else {
+                        \Log::warning('No se encontró la vigencia en el PDF. Archivo: ' . $pdfPath);
+                    }
+
+                    $agente = Agente::firstOrCreate(
+                        ['numero_agentes' => $datos['numero_agente']],
+                        ['nombre_agentes' => $datos['nombre_agente']]
+                    );
+
+                    // Guardar los datos en la base de datos
+                    Poliza::create([
+                        'cliente_id' => $cliente->id,
+                        'compania_id' => $compania_id,
+                        'agente_id' => $agente->id,
+                        'tipo_seguro_id' => $request->input('tipo_seguro_id'),
+                        'numero_poliza' => $datos['numero_poliza'] ?? 'No disponible',
+                        'vigencia_inicio' => $datos['vigencia_inicio'] ?? null,
+                        'vigencia_fin' => $datos['vigencia_fin'] ?? null,
+                        'forma_pago' => $datos['forma_pago'] ?? 'No especificada',
+                        'total_a_pagar' => isset($datos['total_pagar']) ? floatval(str_replace(',', '', $datos['total_pagar'])) : 0,
+                        'archivo_pdf' => $pdfPath,
+                        'pagos_capturados' => false, // Indicador que aún no se ha capturado los pagos subsecuentes
+                    ]);
+
+                
+                } catch (\Exception $e) {
+                    \Log::error('Error al procesar el archivo PDF: ' . $e->getMessage(), [
+                        'stack_trace' => $e->getTraceAsString(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+
+                    return redirect()->back()->with('error', 'Hubo un error al procesar el archivo PDF: ' . $archivo->getClientOriginalName());
                 }
-    
-                // Selecciona compañías
-                switch ($compania->nombre) {
-                    case 'HDI Seguros':
-                        $datos = $this->extraerDatosHdi($allText);
-                        break;
-                    case 'Banorte Seguros': 
-                        $datos = $this->extraerDatosBanorte($allText);
-                        break;
-                    // Agregar casos para cada compañía
-                    default:
-                        \Log::error('Compañía de seguros no identificada: ' . $compania->nombre);
-                        return redirect()->back()->with('error', 'Compañía de seguros no identificada');
-                }
-    
-                $cliente = Cliente::firstOrCreate(
-                    ['rfc' => $datos['rfc']],
-                    ['nombre_completo' => $datos['nombre_cliente']]
-                );
-    
-                if (preg_match('/Vigencia:\s*Desde las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})\s*Hasta las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})/', $allText, $matches)) {
-                    $datos['vigencia_inicio'] = $this->convertirFecha($matches[1]);
-                    $datos['vigencia_fin'] = $this->convertirFecha($matches[2]);
-                } else {
-                    \Log::warning('No se encontró la vigencia en el PDF. Archivo: ' . $pdfPath);
-                }
-    
-                $agente = Agente::firstOrCreate(
-                    ['numero_agentes' => $datos['numero_agente']],
-                    ['nombre_agentes' => $datos['nombre_agente']]
-                );
-    
-                // Mostrar el texto extraído para depuración
-               // dd($pdfParsed); // Descomenta esto si necesitas hacer pruebas
-    
-                // Guardar los datos en la base de datos si es necesario
-                Poliza::create([
-                    'cliente_id' => $cliente->id,
-                    'compania_id' => $compania_id,
-                    'agente_id' => $agente->id,
-                    'tipo_seguro_id' => $request->input('tipo_seguro_id'),
-                    'numero_poliza' => $datos['numero_poliza'] ?? 'No disponible',
-                    'vigencia_inicio' => $datos['vigencia_inicio'] ?? null,
-                    'vigencia_fin' => $datos['vigencia_fin'] ?? null,
-                    'forma_pago' => $datos['forma_pago'] ?? 'No especificada',
-                    'total_a_pagar' => isset($datos['total_pagar']) ? floatval(str_replace(',', '', $datos['total_pagar'])) : 0,
-                    'archivo_pdf' => $pdfPath,
-                    'pagos_capturados' => false, // Indicador que aun no se ha capturado los pagos subsecuentes
-                ]);
-    
-                return response()->json([
-                    'pdf_text' => $allText,
-                    'message' => 'PDF procesado con éxito',
-                ]);
-            } catch (\Exception $e) {
-                // Manejar errores en el parsing del PDF
-                return response()->json([
-                    'error' => 'Hubo un problema al procesar el archivo PDF.',
-                    'details' => $e->getMessage(),
-                ], 500);
             }
+
+            return redirect()->back()->with('success', 'Las pólizas han sido subidas y procesadas exitosamente.');
         }
-    }
+
+
 // Función para convertir la fecha
 public function convertirFecha($fecha)
 {
@@ -279,10 +273,20 @@ public function convertirFecha($fecha)
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $poliza = Poliza::findOrFail($id);
+
+        // Eliminar el archivo si existe
+        if ($poliza->archivo_pdf && Storage::exists('public/polizas/' . $poliza->archivo_pdf)) {
+            Storage::delete('public/polizas/' . $poliza->archivo_pdf);
+        }
+
+        $poliza->delete();
+
+        return redirect()->route('polizas.index')->with('success', 'Póliza eliminada correctamente.');
     }
+
 
   
 }

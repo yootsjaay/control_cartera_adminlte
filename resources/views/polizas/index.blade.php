@@ -3,10 +3,7 @@
 @section('title', 'Lista de Pólizas')
 
 @section('content_header')
-    
-@stop
-
-<!-- Mensaje de éxito o error -->
+    <!-- Mensaje de éxito o error -->
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('success') }}
@@ -20,6 +17,9 @@
     </div>
   @endif
   @section('content')
+@stop
+
+
 <div class="card">
     <div class="card-header text-center">
         <h1>Lista de Pólizas</h1>
