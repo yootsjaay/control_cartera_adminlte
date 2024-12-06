@@ -37,6 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/companias', CompaniasController::class);
         Route::resource('/seguros', SegurosController::class);
 
+
     });
 
     // Rutas específicas para el rol `user`

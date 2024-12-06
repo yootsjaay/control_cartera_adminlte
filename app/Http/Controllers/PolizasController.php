@@ -11,11 +11,11 @@ use App\Models\Poliza;
 use App\Models\Agente;
 use App\Models\PagosSubsecuente;
 use Illuminate\Support\Facades\Storage;
-
+use Spatie\PdfToImage\Pdf;
 use thiagoalessio\TesseractOCR\TesseractOCR;
+use \Imagick; 
 use DateTime;
 use Exception;
-
 use Smalot\PdfParser\Parser;
 
 
@@ -42,8 +42,9 @@ class PolizasController extends Controller
         $clientes = Cliente::all();
         $companias = Compania::all();
         $seguros = TipoSeguro::all();
+        $polizas = Poliza::all();  
         
-        return view('polizas.create', compact('clientes', 'companias', 'seguros'));
+        return view('polizas.create', compact('clientes', 'companias', 'seguros','polizas' ));
     }
 
 
@@ -56,10 +57,12 @@ class PolizasController extends Controller
                 'pdf.*' => 'mimes:pdf|max:10000',
                 'compania_id' => 'required|exists:companias,id',
                 'tipo_seguro_id' => 'required|exists:tipo_seguros,id',
+                
             ]);
-
             $compania_id = $request->input('compania_id');
             $compania = Compania::find($compania_id);
+
+           
 
             foreach ($request->file('pdf') as $file) {
                 // Almacenar el archivo PDF en el storage
@@ -124,7 +127,7 @@ class PolizasController extends Controller
                         'pagos_capturados' => false, // Indicador que aún no se ha capturado los pagos subsecuentes
                     ]);
 
-                
+                    
                 } catch (\Exception $e) {
                     \Log::error('Error al procesar el archivo PDF: ' . $e->getMessage(), [
                         'stack_trace' => $e->getTraceAsString(),
@@ -132,13 +135,27 @@ class PolizasController extends Controller
                         'line' => $e->getLine(),
                     ]);
 
-                    return redirect()->back()->with('error', 'Hubo un error al procesar el archivo PDF: ' . $archivo->getClientOriginalName());
+                    return redirect()->back()->with('error', 'Hubo un error al procesar el archivo PDF: ' . $file->getClientOriginalName());
                 }
             }
 
             return redirect()->back()->with('success', 'Las pólizas han sido subidas y procesadas exitosamente.');
         }
 
+
+
+        private function processPdf(Poliza $poliza){
+            $pdfPath = storage_path('app/public/' . $poliza->ruta_pdf);
+
+            $ocr = new TesseractOCR();
+            $ocr->image($pdfPath);
+            $text = $ocr->run();
+        
+            // Actualizar el modelo Poliza con el texto extraído
+            $poliza->text = $text;
+            $poliza->save();
+
+        }
 
 // Función para convertir la fecha
 public function convertirFecha($fecha)
@@ -246,9 +263,10 @@ public function convertirFecha($fecha)
         return $datos;
     }
 
-    /**
-     * Display the specified resource.
-     */
+
+
+    
+
     public function show(string $id)
     {
         //

@@ -65,29 +65,25 @@
             </div>
         </div>
 
-        <!-- Segunda sección: Modal de captura de información faltante -->
+        <!-- Segunda sección: captura de información faltante -->
         <div class="col-md-6">
             <div class="card card-primary">
                 <div class="card-header">
                     <h3 class="card-title">Pdf Extracción con OCR</h3>
                 </div>
                 <div class="card-body">
-                    <form action="" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('polizas.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
+                      
                         <div class="mb-3">
-                            <label for="compania_id2" class="form-label">Compañía</label>
-                            <select class="form-select" name="compania_id" id="compania_id2" required>
-                                <option value="" disabled selected>Seleccione una compañía</option>
-                                @foreach ($companias as $compania)
-                                    <option value="{{ $compania->id }}">{{ $compania->nombre }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="tipo_seguro_id2" class="form-label">Seleccionar Pdf</label>
-                            <select class="form-select" name="tipo_seguro_id" id="tipo_seguro_id2" required>
-                                <option value="" disabled selected>Seleccione pdf Subido</option>
-                            </select>
+                            <label for="Polizas_imagen" class="form-label">Seleccionar Numero de Poliza</label>
+                            <select  class ="form-select"  name="poliza_id" id="Polizas_imagen" required>
+                                <option value="" disabled selected>Seleccione numero de Poliza</option>
+                            
+                            @foreach ($polizas as $poliza)
+                                <option value="{{ $poliza->id }}">{{ $poliza->numero_poliza }}</option>
+                            @endforeach
+                        </select>
                         </div>
                         <button type="submit" class="btn btn-primary" id="submitBtn">Convertir y Extraer</button>
                     </form>
