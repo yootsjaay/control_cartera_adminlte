@@ -4,6 +4,7 @@
 
 @section('content_header')
     <!-- Mensaje de éxito o error -->
+
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         {{ session('success') }}
@@ -38,7 +39,7 @@
                         <th>Archivo</th>
                         <th>Fecha de Inicio</th>
                         <th>Fecha de Fin</th>
-                        <th>Pagos Subsecuentes</th>
+                        <th>Tipo Seguro</th>
                         <th>Fecha de Creación</th>
                         <th>Acciones</th>
                     </tr>
@@ -63,7 +64,9 @@
                             <td>{{ $poliza->vigencia_fin ? $poliza->vigencia_fin->format('d/m/Y') : 'N/A' }}</td>
                             
                             <!-- Modal dinámico para pagos subsecuentes -->
-                            <td></td>
+                            <td>
+
+                            </td>
 
                             <td>{{ $poliza->created_at->format('d/m/Y') }}</td>
 

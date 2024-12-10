@@ -12,6 +12,12 @@ class SegurosController extends Controller
         return view('seguros.index', compact('seguros'));
     }
 
+    public function tiposSeguros($id)
+{
+    $compania = Compania::with('tiposSeguros')->findOrFail($id);
+    return response()->json($compania->tiposSeguros);
+}
+
     public function create()
     {
         return view('seguros.create');

@@ -3,35 +3,39 @@
 @section('title', 'Subir Póliza')
 
 @section('content')
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 <div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Subir Pólizas</h1>
+    <h1 class="mt-4 text-center">Gestión de Pólizas</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Inicio</a></li>
         <li class="breadcrumb-item"><a href="{{ route('companias.index') }}">Compañía</a></li>
         <li class="breadcrumb-item active">Registrar</li>
     </ol>
 
+    <!-- Mensajes de éxito y error -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>¡Éxito!</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>¡Error!</strong> Por favor corrige los siguientes problemas:
+            <ul class="mt-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <!-- Formulario de carga -->
     <div class="row">
-        <!-- Primera sección: Formulario de carga de pólizas -->
-        <div class="col-md-6">
-            <div class="card card-primary">
-                <div class="card-header">
+        <div class="col-lg-6 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
                     <h3 class="card-title">Subir Póliza</h3>
                 </div>
                 <div class="card-body">
@@ -56,36 +60,13 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="pdf" class="form-label">Archivo PDF</label>
+                            <label for="pdf" class="form-label">Subir Archivo(s) PDF</label>
                             <input class="form-control" type="file" name="pdf[]" multiple required>
+                            <div class="form-text">Puedes seleccionar varios archivos presionando <b>Ctrl</b> o <b>Shift</b> mientras seleccionas.</div>
                         </div>
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Subir</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Segunda sección: captura de información faltante -->
-        <div class="col-md-6">
-            <div class="card card-primary">
-                <div class="card-header">
-                    <h3 class="card-title">Pdf Extracción con OCR</h3>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('polizas.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                      
-                        <div class="mb-3">
-                            <label for="Polizas_imagen" class="form-label">Seleccionar Numero de Poliza</label>
-                            <select  class ="form-select"  name="poliza_id" id="Polizas_imagen" required>
-                                <option value="" disabled selected>Seleccione numero de Poliza</option>
-                            
-                            @foreach ($polizas as $poliza)
-                                <option value="{{ $poliza->id }}">{{ $poliza->numero_poliza }}</option>
-                            @endforeach
-                        </select>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">Subir Pólizas</button>
                         </div>
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Convertir y Extraer</button>
                     </form>
                 </div>
             </div>
@@ -101,6 +82,9 @@
 
 @section('js')
 <script>
-// Agrega aquí los scripts necesarios para cargar y manipular los PDFs
+    // Ejemplo de script para validaciones adicionales o acciones después del envío.
+    document.getElementById('submitBtn').addEventListener('click', function () {
+        console.log('Formulario enviado.');
+    });
 </script>
 @stop

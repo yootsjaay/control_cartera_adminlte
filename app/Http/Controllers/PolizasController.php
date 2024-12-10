@@ -62,6 +62,10 @@ class PolizasController extends Controller
             $compania_id = $request->input('compania_id');
             $compania = Compania::find($compania_id);
 
+            $tipo_seguro = $request->input('tipo_seguro_id');
+            $tipoSeguro= TipoSeguro::find($tipo_seguro);
+
+
            
 
             foreach ($request->file('pdf') as $file) {
@@ -81,19 +85,60 @@ class PolizasController extends Controller
                         $allText .= $page->getText();
                     }
               
-
+                    
                     // Seleccionar la compañía para extraer datos específicos
                     switch ($compania->nombre) {
                         case 'HDI Seguros':
-                            $datos = $this->extraerDatosHdi($allText);
+                            switch($tipoSeguro->nombre){
+                                case 'Seguro de Autos':
+                                    $datos = $this->extraerDatosHdiAutos($allText);
+                                     break;
+                                case 'Seguro de Daños':
+                                    $datos =$this->extraerDatosHdiDanios($allText); 
+                                    break;
+                                case 'Seguro de Gastos Medicos':
+                                    $datos = $this->extraerDatosHdiGastos($allText);
+                                    break;
+                                default: 
+                                return redirect()->back()->with('error','tipo de seguro no identificado');
+                            }
                             break;
+                            
                         case 'Banorte Seguros':
                             $datos = $this->extraerDatosBanorte($allText);
+                            break;
+                        case'General de Seguros':
+                            $datos = $this->extraerDatosGeneral($allText);
+                            break;
+                        case 'Qualitas Seguros':
+                            $datos = $this->extraerDatosQualitas($allText);
+                            break;
+                        case 'Thona Seguros':
+                            $datos = $this->extraerDatosThona($allText);
+                            break;
+                        case 'Insignia Life':
+                            $datos = $this->extraerDatosInsignia($allText);
+                            break;
+                        case 'Alianz Seguros':
+                            $datos = $this->extraerDatosAlianz($allText);
+                            break;
+                        case 'GMX Seguros':
+                            $datos = $this->extraerDatosGmx($allText);
+                            break;
+                        case 'MetLife':
+                            $datos = $this->extraerDatosMetlife($allText);
+                            break;
+                        case 'Atlas Seguros':
+                            $datos = $this->extraerDatosAtlas($allText);
                             break;
                         default:
                             \Log::error('Compañía de seguros no identificada: ' . $compania->nombre);
                             return redirect()->back()->with('error', 'Compañía de seguros no identificada');
                     }
+
+                    //seleccionar el tipo de seguro de la compania 
+
+                    
 
                     $cliente = Cliente::firstOrCreate(
                         ['rfc' => $datos['rfc']],
@@ -144,19 +189,6 @@ class PolizasController extends Controller
 
 
 
-        private function processPdf(Poliza $poliza){
-            $pdfPath = storage_path('app/public/' . $poliza->ruta_pdf);
-
-            $ocr = new TesseractOCR();
-            $ocr->image($pdfPath);
-            $text = $ocr->run();
-        
-            // Actualizar el modelo Poliza con el texto extraído
-            $poliza->text = $text;
-            $poliza->save();
-
-        }
-
 // Función para convertir la fecha
 public function convertirFecha($fecha)
 {
@@ -171,9 +203,8 @@ public function convertirFecha($fecha)
         return null;
     }
 }
-
-
-    public function extraerDatosHdi($text) {
+        //extraccion de compania HDI
+        private function extraerDatosHdiAutos($text){ 
         $datos = [];
     
         // Extraer número de póliza
@@ -262,7 +293,21 @@ public function convertirFecha($fecha)
         // Retornar todos los datos extraídos
         return $datos;
     }
+    private function extraerDatosHdiGastos($text) {
+        $datos = [];
+        // Extraer Número de Póliza
+    if (preg_match('/Número de Póliza:\s*(\d+)/i', $text, $matches)) {
+        $datos['numero_poliza'] = $matches[1];
+    }
+    
+      dd($datos);
+        // Devuelve los datos extraídos
+        return $datos;
+    }
+    
+    private function extraerDatosHdiDanios($text){
 
+    }
 
 
     
@@ -277,7 +322,8 @@ public function convertirFecha($fecha)
      */
     public function edit(string $id)
     {
-        //
+     
+        
     }
 
     /**
