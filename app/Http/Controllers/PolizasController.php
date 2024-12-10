@@ -50,143 +50,114 @@ class PolizasController extends Controller
 
 
 
-        public function store(Request $request)
-        {
-            // Validar PDF
-            $request->validate([
-                'pdf.*' => 'mimes:pdf|max:10000',
-                'compania_id' => 'required|exists:companias,id',
-                'tipo_seguro_id' => 'required|exists:tipo_seguros,id',
-                
-            ]);
-            $compania_id = $request->input('compania_id');
-            $compania = Compania::find($compania_id);
-
-            $tipo_seguro = $request->input('tipo_seguro_id');
-            $tipoSeguro= TipoSeguro::find($tipo_seguro);
-
-
-           
-
-            foreach ($request->file('pdf') as $file) {
-                // Almacenar el archivo PDF en el storage
-                $pdfPath = $file->store('Polizas', 'public');
-
-                // Inicializar el parser de PDF
-                $parser = new Parser();
-
-                try {
-                    //  parsear el PDF con el parser
-                    $pdfParsed = $parser->parseFile(storage_path('app/public/' . $pdfPath));
-                    $pages = $pdfParsed->getPages();
-                    $allText = '';
-
-                    foreach ($pages as $page) {
-                        $allText .= $page->getText();
-                    }
-              
-                    
-                    // Seleccionar la compañía para extraer datos específicos
-                    switch ($compania->nombre) {
-                        case 'HDI Seguros':
-                            switch($tipoSeguro->nombre){
-                                case 'Seguro de Autos':
-                                    $datos = $this->extraerDatosHdiAutos($allText);
-                                     break;
-                                case 'Seguro de Daños':
-                                    $datos =$this->extraerDatosHdiDanios($allText); 
-                                    break;
-                                case 'Seguro de Gastos Medicos':
-                                    $datos = $this->extraerDatosHdiGastos($allText);
-                                    break;
-                                default: 
-                                return redirect()->back()->with('error','tipo de seguro no identificado');
-                            }
-                            break;
-                            
-                        case 'Banorte Seguros':
-                            $datos = $this->extraerDatosBanorte($allText);
-                            break;
-                        case'General de Seguros':
-                            $datos = $this->extraerDatosGeneral($allText);
-                            break;
-                        case 'Qualitas Seguros':
-                            $datos = $this->extraerDatosQualitas($allText);
-                            break;
-                        case 'Thona Seguros':
-                            $datos = $this->extraerDatosThona($allText);
-                            break;
-                        case 'Insignia Life':
-                            $datos = $this->extraerDatosInsignia($allText);
-                            break;
-                        case 'Alianz Seguros':
-                            $datos = $this->extraerDatosAlianz($allText);
-                            break;
-                        case 'GMX Seguros':
-                            $datos = $this->extraerDatosGmx($allText);
-                            break;
-                        case 'MetLife':
-                            $datos = $this->extraerDatosMetlife($allText);
-                            break;
-                        case 'Atlas Seguros':
-                            $datos = $this->extraerDatosAtlas($allText);
-                            break;
-                        default:
-                            \Log::error('Compañía de seguros no identificada: ' . $compania->nombre);
-                            return redirect()->back()->with('error', 'Compañía de seguros no identificada');
-                    }
-
-                    //seleccionar el tipo de seguro de la compania 
-
-                    
-
-                    $cliente = Cliente::firstOrCreate(
-                        ['rfc' => $datos['rfc']],
-                        ['nombre_completo' => $datos['nombre_cliente']]
-                    );
-
-                    if (preg_match('/Vigencia:\s*Desde las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})\s*Hasta las 12:00 hrs\. del\s*(\d{2}\/\d{2}\/\d{4})/', $allText, $matches)) {
-                        $datos['vigencia_inicio'] = $this->convertirFecha($matches[1]);
-                        $datos['vigencia_fin'] = $this->convertirFecha($matches[2]);
-                    } else {
-                        \Log::warning('No se encontró la vigencia en el PDF. Archivo: ' . $pdfPath);
-                    }
-
-                    $agente = Agente::firstOrCreate(
-                        ['numero_agentes' => $datos['numero_agente']],
-                        ['nombre_agentes' => $datos['nombre_agente']]
-                    );
-
-                    // Guardar los datos en la base de datos
-                    Poliza::create([
-                        'cliente_id' => $cliente->id,
-                        'compania_id' => $compania_id,
-                        'agente_id' => $agente->id,
-                        'tipo_seguro_id' => $request->input('tipo_seguro_id'),
-                        'numero_poliza' => $datos['numero_poliza'] ?? 'No disponible',
-                        'vigencia_inicio' => $datos['vigencia_inicio'] ?? null,
-                        'vigencia_fin' => $datos['vigencia_fin'] ?? null,
-                        'forma_pago' => $datos['forma_pago'] ?? 'No especificada',
-                        'total_a_pagar' => isset($datos['total_pagar']) ? floatval(str_replace(',', '', $datos['total_pagar'])) : 0,
-                        'archivo_pdf' => $pdfPath,
-                        'pagos_capturados' => false, // Indicador que aún no se ha capturado los pagos subsecuentes
-                    ]);
-
-                    
-                } catch (\Exception $e) {
-                    \Log::error('Error al procesar el archivo PDF: ' . $e->getMessage(), [
-                        'stack_trace' => $e->getTraceAsString(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                    ]);
-
-                    return redirect()->back()->with('error', 'Hubo un error al procesar el archivo PDF: ' . $file->getClientOriginalName());
+    public function store(Request $request)
+    {
+        // Validar PDF
+        $request->validate([
+            'pdf.*' => 'mimes:pdf|max:10000',
+            'compania_id' => 'required|exists:companias,id',
+            'tipo_seguro_id' => 'required|exists:tipo_seguros,id',
+        ]);
+    
+        $compania_id = $request->input('compania_id');
+        $compania = Compania::find($compania_id);
+    
+        $tipo_seguro = $request->input('tipo_seguro_id');
+        $tipoSeguro = TipoSeguro::find($tipo_seguro);
+    
+        foreach ($request->file('pdf') as $file) {
+            // Almacenar el archivo PDF
+            $pdfPath = $file->store('Polizas', 'public');
+    
+            // Inicializar el parser de PDF
+            $parser = new Parser();
+    
+            try {
+                // Parsear el PDF
+                $pdfParsed = $parser->parseFile(storage_path('app/public/' . $pdfPath));
+                $pages = $pdfParsed->getPages();
+    
+                if (!$pages || count($pages) === 0) {
+                    throw new \Exception('El archivo PDF no contiene páginas legibles.');
                 }
+    
+                $allText = '';
+                foreach ($pages as $page) {
+                    $allText .= $page->getText();
+                }
+            //  dd($allText);
+    
+                // Procesar según compañía y tipo
+                $metodos = [
+                    'HDI Seguros' => [
+                        'Seguro de Autos' => 'extraerDatosHdiAutos',
+                        'Seguro de Daños' => 'extraerDatosHdiDanios',
+                        'Seguro de Gastos Medicos' => 'extraerDatosHdiGastos',
+                    ],
+                    'Banorte Seguros' => 'extraerDatosBanorte',
+                    // Agregar más compañías
+                ];
+    
+                $metodo = isset($metodos[$compania->nombre])
+                    ? (is_array($metodos[$compania->nombre])
+                        ? $metodos[$compania->nombre][$tipoSeguro->nombre] ?? null
+                        : $metodos[$compania->nombre])
+                    : null;
+    
+                if ($metodo && method_exists($this, $metodo)) {
+                    $datos = $this->$metodo($allText);
+                } else {
+                    return redirect()->back()->with('error', 'Tipo de seguro o compañía no identificados.');
+                }
+    
+                // Procesar cliente
+                $cliente = Cliente::firstOrCreate(
+                    ['rfc' => $datos['rfc']],
+                    ['nombre_completo' => $datos['nombre_cliente']]
+                );
+    
+                // Extraer vigencia
+                if (preg_match('/Vigencia:\s*Desde.*?(\d{2}\/\d{2}\/\d{4}).*?Hasta.*?(\d{2}\/\d{2}\/\d{4})/', $allText, $matches)) {
+                    $datos['vigencia_inicio'] = $this->convertirFecha($matches[1]);
+                    $datos['vigencia_fin'] = $this->convertirFecha($matches[2]);
+                } else {
+                    \Log::warning('No se encontró la vigencia en el PDF. Archivo: ' . $pdfPath);
+                }
+    
+                // Procesar agente
+                $agente = Agente::firstOrCreate(
+                    ['numero_agentes' => $datos['numero_agente']],
+                    ['nombre_agentes' => $datos['nombre_agente']]
+                );
+    
+                // Guardar póliza
+                Poliza::create([
+                    'cliente_id' => $cliente->id,
+                    'compania_id' => $compania_id,
+                    'agente_id' => $agente->id,
+                    'tipo_seguro_id' => $tipoSeguro->id,
+                    'numero_poliza' => $datos['numero_poliza'] ?? 'No disponible',
+                    'vigencia_inicio' => $datos['vigencia_inicio'] ?? null,
+                    'vigencia_fin' => $datos['vigencia_fin'] ?? null,
+                    'forma_pago' => $datos['forma_pago'] ?? 'No especificada',
+                    'total_a_pagar' => isset($datos['total_pagar']) ? floatval(str_replace(',', '', $datos['total_pagar'])) : 0,
+                    'archivo_pdf' => $pdfPath,
+                    'pagos_capturados' => false,
+                ]);
+    
+            } catch (\Exception $e) {
+                \Log::error('Error al procesar el archivo PDF: ' . $e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+                return redirect()->back()->with('error', 'Error al procesar el archivo PDF: ' . $file->getClientOriginalName());
             }
-
-            return redirect()->back()->with('success', 'Las pólizas han sido subidas y procesadas exitosamente.');
         }
-
+    
+        return redirect()->back()->with('success', 'Las pólizas han sido subidas y procesadas exitosamente.');
+    }
+    
+    
 
 
 // Función para convertir la fecha
@@ -293,21 +264,52 @@ public function convertirFecha($fecha)
         // Retornar todos los datos extraídos
         return $datos;
     }
-    private function extraerDatosHdiGastos($text) {
-        $datos = [];
-        // Extraer Número de Póliza
-    if (preg_match('/Número de Póliza:\s*(\d+)/i', $text, $matches)) {
-        $datos['numero_poliza'] = $matches[1];
-    }
-    
-      dd($datos);
-        // Devuelve los datos extraídos
-        return $datos;
-    }
-    
-    private function extraerDatosHdiDanios($text){
+        private function extraerDatosHdiGastos($text) {
+           $datos = [];
+        
+            // Extrae Numero de poliza
+            if (preg_match('/Suma Asegurada:\s*(.+)/i', $text, $matches)) {
+                $datos['numero_de_poliza'] = trim($matches[1]);
+            }
+        
+        
+            // Extraer Vigencia completa (Desde y Hasta)
+            if (preg_match('/Desde:\s*(.+)\nHasta:\s*(.+)/i', $text, $matches)) {
+                $datos['vigencia'] = [
+                    'desde' => trim($matches[1]),
+                    'hasta' => trim($matches[2]),
+                ];
+            }
 
+            
+            // Extraer Dirección
+            if (preg_match('/Dirección:\s*(.+)/i', $text, $matches)) {
+                $datos['contratante'] = trim($matches[1]);
+            }
+        
+            // Extraer R.F.C.
+            if (preg_match('/R\.F\.C\.\:\s*([A-Z0-9]+)/i', $text, $matches)) {
+                $datos['rfc'] = $matches[1];
+            }
+                 // Extraer el monto de Pagos Subsecuentes
+    if (preg_match('/([\d,]+\.\d{2})\s*Pagos Subsecuentes/i', $text, $matches)) {
+        $datos['pagos_subsecuentes'] = str_replace(',', '', $matches[1]); // Convertir a número sin comas
     }
+          
+    
+    // Extraer Pagos Subsecuentes (monto relacionado con fechas específicas)
+    if (preg_match('/(\d{2}\/[A-Z]{3}\/\d{4})\s+(\d{2}\/[A-Z]{3}\/\d{4})\s+([\d,]+\.\d{2})/i', $text, $matches)) {
+        $datos['fecha_inicio_pago_subsecuente'] = $matches[1]; // Primera fecha (inicio)
+        $datos['fecha_fin_pago_subsecuente'] = $matches[2];   // Segunda fecha (fin)
+        $datos['monto_pago_subsecuente'] = str_replace(',', '', $matches[3]); // Monto sin comas
+    }
+
+        
+            dd($datos);
+            return $datos;
+        }
+    
+    
 
 
     

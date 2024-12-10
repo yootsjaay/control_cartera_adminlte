@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use App\Models\User;
+
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -58,5 +60,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'ver pólizas',
             'ver clientes',
         ]);
+
+        // Crear un usuario administrador por defecto
+        $adminUser = User::firstOrCreate([
+            'email' => 'admin@gmail.com' // Cambia el correo por el que prefieras
+        ], [
+            'name' => 'Administrador',
+            'password' => bcrypt('admin123') // Cambia la contraseña por una segura
+        ]);
+
+        // Asignar el rol de 'admin' al usuario administrador
+        $adminUser->assignRole('admin');
+    
     }
 }
