@@ -35,7 +35,9 @@
                 <thead>
                     <tr>
                         <th>Nombre del Seguro</th>
+                        <th>subtipoSeguros</th>
                         <th>Acciones</th>
+                       
                     </tr>
                 </thead>
                 <tbody>
@@ -50,6 +52,17 @@
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este seguro?')">Eliminar</button>
                             </form>
+                        </td>
+                        <td>
+                        @foreach ($polizas as $poliza)
+                        <h3>Póliza: {{ $poliza->numero_poliza }}</h3>
+                        <ul>
+                            @foreach ($poliza->detalles as $detalle)
+                                <li>Subtipo de Seguro: {{ $detalle->subtipo_seguro }} (Tipo: {{ $detalle->tipoSeguro->nombre }})</li>
+                            @endforeach
+                        </ul>
+                    @endforeach
+
                         </td>
                     </tr>
                 @endforeach

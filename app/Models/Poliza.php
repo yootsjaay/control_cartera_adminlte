@@ -32,7 +32,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property Compania $compania
  * @property TipoSeguro $tipo_seguro
  * @property Collection|PagosSubsecuente[] $pagos_subsecuentes
- * @property Collection|VehiculosAsegurado[] $vehiculos_asegurados
  *
  * @package App\Models
  */
@@ -86,10 +85,5 @@ class Poliza extends Model
 	public function pagos_subsecuentes()
 	{
 		return $this->hasMany(PagosSubsecuente::class);
-	}
-
-	public function vehiculos_asegurados()
-	{
-		return $this->hasMany(VehiculosAsegurado::class);
 	}
 }

@@ -12,7 +12,6 @@ use Spatie\Permission\Traits\HasRoles; // Asegúrate de importar el trait
 class User extends Authenticatable
 { 
 	use Notifiable, HasRoles;
-
 	protected $table = 'users';
 
 	protected $casts = [

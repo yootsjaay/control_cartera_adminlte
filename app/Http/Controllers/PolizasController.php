@@ -19,33 +19,33 @@ use Exception;
 use Smalot\PdfParser\Parser;
 
 
-class PolizasController extends Controller
-{
-    /**
-     * Display a listing of the resource.
-     */
-     public function index()
+    class PolizasController extends Controller
     {
-        $polizas = Poliza::all();
-        $companias= Compania::all();
-        $seguros = TipoSeguro::all();
-        return view('polizas.index', compact('polizas', 'companias', 'seguros'));
-    }
+        /**
+         * Display a listing of the resource.
+         */
+        public function index()
+        {
+            $polizas = Poliza::all();
+            $companias= Compania::all();
+            $seguros = TipoSeguro::all();
+            return view('polizas.index', compact('polizas', 'companias', 'seguros'));
+        }
 
+                
+
+        /**
+         * Show the form for creating a new resource.
+         */
+        public function create()
+        {
+            $clientes = Cliente::all();
+            $companias = Compania::all();
+            $seguros = TipoSeguro::all();
+            $polizas = Poliza::all();  
             
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $clientes = Cliente::all();
-        $companias = Compania::all();
-        $seguros = TipoSeguro::all();
-        $polizas = Poliza::all();  
-        
-        return view('polizas.create', compact('clientes', 'companias', 'seguros','polizas' ));
-    }
+            return view('polizas.create', compact('clientes', 'companias', 'seguros','polizas' ));
+        }
 
 
 
@@ -95,7 +95,7 @@ class PolizasController extends Controller
                         'Seguro de Gastos Medicos' => 'extraerDatosHdiGastos',
                     ],
                     'Banorte Seguros' => 'extraerDatosBanorte',
-                    // Agregar más compañías
+                    
                 ];
     
                 $metodo = isset($metodos[$compania->nombre])
@@ -157,23 +157,20 @@ class PolizasController extends Controller
         return redirect()->back()->with('success', 'Las pólizas han sido subidas y procesadas exitosamente.');
     }
     
-    
-
-
-// Función para convertir la fecha
-public function convertirFecha($fecha)
-{
-    try {
-        $fechaObj = DateTime::createFromFormat('d/m/Y', $fecha);
-        if ($fechaObj === false) {
-            // Manejo de error si el formato no es válido
-            return null;
+        // Función para convertir la fecha
+        public function convertirFecha($fecha)
+        {
+            try {
+                $fechaObj = DateTime::createFromFormat('d/m/Y', $fecha);
+                if ($fechaObj === false) {
+                    // Manejo de error si el formato no es válido
+                    return null;
+                }
+                return $fechaObj->format('Y-m-d');
+            } catch (Exception $e) {
+                return null;
+            }
         }
-        return $fechaObj->format('Y-m-d');
-    } catch (Exception $e) {
-        return null;
-    }
-}
         //extraccion de compania HDI
         private function extraerDatosHdiAutos($text){ 
         $datos = [];
@@ -264,6 +261,7 @@ public function convertirFecha($fecha)
         // Retornar todos los datos extraídos
         return $datos;
     }
+    
         private function extraerDatosHdiGastos($text) {
            $datos = [];
         

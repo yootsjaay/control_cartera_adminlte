@@ -14,10 +14,11 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property int $id
  * @property int $poliza_id
- * @property Carbon $vigencia_inicio
- * @property Carbon $vigencia_fin
+ * @property string $numero_recibo
+ * @property Carbon $vigencia_desde
  * @property float $importe
- * @property Carbon $fecha_vencimiento
+ * @property Carbon $fecha_limite_pago
+ * @property string $estado
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * 
@@ -31,18 +32,18 @@ class PagosSubsecuente extends Model
 
 	protected $casts = [
 		'poliza_id' => 'int',
-		'vigencia_inicio' => 'datetime',
-		'vigencia_fin' => 'datetime',
+		'vigencia_desde' => 'datetime',
 		'importe' => 'float',
-		'fecha_vencimiento' => 'datetime'
+		'fecha_limite_pago' => 'datetime'
 	];
 
 	protected $fillable = [
 		'poliza_id',
-		'vigencia_inicio',
-		'vigencia_fin',
+		'numero_recibo',
+		'vigencia_desde',
 		'importe',
-		'fecha_vencimiento'
+		'fecha_limite_pago',
+		'estado'
 	];
 
 	public function poliza()
