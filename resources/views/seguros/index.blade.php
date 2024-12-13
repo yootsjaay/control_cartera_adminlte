@@ -31,43 +31,36 @@
             Seguros
         </div>
         <div class="card-body">
-            <table id="datatablesSimple" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Nombre del Seguro</th>
-                        <th>subtipoSeguros</th>
-                        <th>Acciones</th>
-                       
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach($seguros as $seguro)
-                    <tr>
-                        <td>{{ $seguro->nombre }}</td>
+        <table id="datatablesSimple" class="table table-striped" style="width:100%">        <thead>
+            <tr>
+                <th>Nombre Seguro</th>
+                <th>Tipos</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($seguros as $tipoSeguro)
+                <tr>
+                    <td>{{ $tipoSeguro->nombre }}</td>
+                    <td>
+                        @foreach($tipoSeguro->sub_tipo_seguros as $subtipo)
+                            <span class="badge badge-info">{{ $subtipo->nombre }}</span>
+                        @endforeach
+                    </td>
+                    <td>
+                        <a href="{{ route('seguros.edit', $tipoSeguro->id) }}" class="btn btn-warning btn-sm">Editar</a>
                         
-                        <td>
-                            <a href="{{ route('seguros.edit', $seguro->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                            <form action="{{ route('seguros.destroy', $seguro->id) }}" method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este seguro?')">Eliminar</button>
-                            </form>
-                        </td>
-                        <td>
-                        @foreach ($polizas as $poliza)
-                        <h3>Póliza: {{ $poliza->numero_poliza }}</h3>
-                        <ul>
-                            @foreach ($poliza->detalles as $detalle)
-                                <li>Subtipo de Seguro: {{ $detalle->subtipo_seguro }} (Tipo: {{ $detalle->tipoSeguro->nombre }})</li>
-                            @endforeach
-                        </ul>
-                    @endforeach
+                        <form action="{{ route('seguros.destroy', $tipoSeguro->id) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este tipo de seguro?')">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
