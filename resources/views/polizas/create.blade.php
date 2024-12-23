@@ -59,6 +59,14 @@
                                 @endforeach
                             </select>
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="subtipo_seguro_id1" class="form-label">Subtipo de Seguro</label>
+                            <select class="form-select" name="subtipo_seguro_id" id="subtipo_seguro_id1" required>
+                                <option value="" disabled selected>Seleccione un subtipo</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label for="pdf" class="form-label">Subir Archivo(s) PDF</label>
                             <input class="form-control" type="file" name="pdf[]" multiple required>
@@ -82,9 +90,38 @@
 
 @section('js')
 <script>
-    // Ejemplo de script para validaciones adicionales o acciones después del envío.
-    document.getElementById('submitBtn').addEventListener('click', function () {
-        console.log('Formulario enviado.');
+   document.addEventListener('DOMContentLoaded', function () {
+    // Evento para actualizar los subtipos cuando se selecciona un tipo de seguro
+    document.getElementById('tipo_seguro_id1').addEventListener('change', function () {
+        const tipoSeguroId = this.value;
+
+        // Solo hacer la solicitud si se ha seleccionado un tipo de seguro
+        if (tipoSeguroId) {
+            fetch(`/obtener-subtipos/${tipoSeguroId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Limpiar el select de subtipos
+                    const subtipoSelect = document.getElementById('subtipo_seguro_id1');
+                    subtipoSelect.innerHTML = '<option value="" disabled selected>Seleccione un subtipo</option>';
+
+                    // Agregar los subtipos al select
+                    data.forEach(subtipo => {
+                        const option = document.createElement('option');
+                        option.value = subtipo.id;
+                        option.textContent = subtipo.nombre;
+                        subtipoSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Hubo un error al cargar los subtipos. Intente nuevamente.');
+                });
+        } else {
+            // Limpiar el select de subtipos si no se seleccionó tipo de seguro
+            document.getElementById('subtipo_seguro_id1').innerHTML = '<option value="" disabled selected>Seleccione un subtipo</option>';
+        }
     });
+});
+
 </script>
 @stop

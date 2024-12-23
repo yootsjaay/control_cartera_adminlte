@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $forma_pago
  * @property float $total_a_pagar
  * @property string|null $archivo_pdf
+ * @property string $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property int $cliente_id
@@ -56,6 +57,7 @@ class Poliza extends Model
 		'forma_pago',
 		'total_a_pagar',
 		'archivo_pdf',
+		'status',
 		'cliente_id',
 		'compania_id',
 		'agente_id',

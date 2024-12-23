@@ -34,6 +34,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/roles', RoleController::class);
         // Rutas de pólizas (solo admin puede gestionar pólizas)
         Route::resource('/polizas', PolizasController::class);
+        // web.php
+        Route::get('/obtener-subtipos/{id}', [PolizasController::class, 'obtenerSubtipos']);
+
         Route::resource('/companias', CompaniasController::class);
         Route::resource('/seguros', SegurosController::class);
 

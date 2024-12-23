@@ -419,7 +419,7 @@ return [
             [
                 'text' => 'Seguros',
                 'url'  => '/seguros',
-                'icon' => 'fas fa-shield-halved',
+                'icon' => 'fas fa-solid fa-user-shield',
                 'can'  => 'ver reportes',
 
             ],

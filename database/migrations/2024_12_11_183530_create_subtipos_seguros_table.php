@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('sub_tipo_seguros', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tipo_seguro_id')->constrained()->onDelete('cascade');
-            $table->string('nombre'); // Nombre del subtipo de seguro
+            $table->foreignId('tipo_seguro_id')->constrained('tipo_seguros')->onDelete('cascade');
+            $table->string('nombre', 255); // Nombre del subtipo de seguro
+            $table->unique(['nombre', 'tipo_seguro_id']); // Unicidad en combinación de nombre y tipo
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('subtipos_seguros');
+        Schema::dropIfExists('sub_tipo_seguros');
     }
 };

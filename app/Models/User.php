@@ -13,7 +13,6 @@ class User extends Authenticatable
 { 
 	use Notifiable, HasRoles;
 	protected $table = 'users';
-
 	protected $casts = [
 		'email_verified_at' => 'datetime'
 	];

@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('tipo_seguros', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre',255);
+            $table->string('nombre', 255)->unique(); // El nombre debe ser único
+            $table->boolean('activo')->default(true); // Estado del tipo de seguro
             $table->timestamps();
         });
     }

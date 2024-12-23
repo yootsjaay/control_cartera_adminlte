@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property int $id
  * @property string $nombre
+ * @property bool $activo
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * 
@@ -27,8 +28,13 @@ class TipoSeguro extends Model
 {
 	protected $table = 'tipo_seguros';
 
+	protected $casts = [
+		'activo' => 'bool'
+	];
+
 	protected $fillable = [
-		'nombre'
+		'nombre',
+		'activo'
 	];
 
 	public function polizas()

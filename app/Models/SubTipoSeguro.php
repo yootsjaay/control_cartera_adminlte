@@ -36,7 +36,7 @@ class SubTipoSeguro extends Model
 	];
 
 	public function tipo_seguro()
-    {
-        return $this->belongsTo(TipoSeguro::class);
-    }
+	{
+		return $this->belongsTo(TipoSeguro::class);
+	}
 }

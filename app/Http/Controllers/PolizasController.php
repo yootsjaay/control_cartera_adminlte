@@ -10,6 +10,7 @@ use App\Models\TipoSeguro;
 use App\Models\Poliza;
 use App\Models\Agente;
 use App\Models\PagosSubsecuente;
+use App\Models\SubTipoSeguro;
 use Illuminate\Support\Facades\Storage;
 use Spatie\PdfToImage\Pdf;
 use thiagoalessio\TesseractOCR\TesseractOCR;
@@ -32,6 +33,15 @@ use Smalot\PdfParser\Parser;
             return view('polizas.index', compact('polizas', 'companias', 'seguros'));
         }
 
+
+        // PolizaController.php
+
+        public function obtenerSubtipos($id)
+        {
+            $subtipos = SubTipoSeguro::where('tipo_seguro_id', $id)->get();
+            return response()->json($subtipos); // Devuelve los subtipos como JSON
+        }
+        
                 
 
         /**
