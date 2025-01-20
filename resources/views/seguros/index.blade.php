@@ -32,28 +32,31 @@
         </div>
         <div class="card-body">
         <table id="datatablesSimple" class="table table-striped" style="width:100%">        <thead>
-            <tr>
-                <th>Nombre Seguro</th>
-                <th>Tipos</th>
+        <tr>
+                <th>Nombre del Seguro</th>
+                <th>Compañía</th>
+                <th>Ramos</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($seguros as $tipoSeguro)
+            @foreach($seguros as $seguro)
                 <tr>
-                    <td>{{ $tipoSeguro->nombre }}</td>
+                    <td>{{ $seguro->nombre }}</td>
+                    <td>{{ $seguro->compania->nombre }}</td>
                     <td>
-                        @foreach($tipoSeguro->sub_tipo_seguros as $subtipo)
-                            <span class="badge badge-info">{{ $subtipo->nombre }}</span>
-                        @endforeach
+                        <ul>
+                            @foreach($seguro->ramos as $ramo)
+                                <li>{{ $ramo->nombre_ramo }}</li>
+                            @endforeach
+                        </ul>
                     </td>
                     <td>
-                        <a href="{{ route('seguros.edit', $tipoSeguro->id) }}" class="btn btn-warning btn-sm">Editar</a>
-                        
-                        <form action="{{ route('seguros.destroy', $tipoSeguro->id) }}" method="POST" style="display: inline-block;">
+                        <a href="{{ route('seguros.edit', $seguro->id) }}">Editar</a>
+                        <form action="{{ route('seguros.destroy', $seguro->id) }}" method="POST" style="display:inline;">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este tipo de seguro?')">Eliminar</button>
+                            <button type="submit">Eliminar</button>
                         </form>
                     </td>
                 </tr>

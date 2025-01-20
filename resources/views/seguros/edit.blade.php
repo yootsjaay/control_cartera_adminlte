@@ -53,62 +53,55 @@
 
     <div class="form-container">
     {{-- Formulario --}}
-    <form action="{{ route('seguros.update', $tipoSeguro->id) }}" method="POST">
+    <form action="{{ route('seguros.update', $seguro->id) }}" method="POST">
         @csrf
         @method('PUT')
-
-        {{-- Tipo de seguro --}}
-        <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre del Tipo de Seguro</label>
-            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ old('nombre', $tipoSeguro->nombre) }}" required>
+        <div>
+            <label for="nombre">Nombre del Seguro</label>
+            <input type="text" name="nombre" id="nombre" value="{{ old('nombre', $seguro->nombre) }}" required>
         </div>
-
-        {{-- Subtipos dinámicos --}}
-        <div class="mb-3">
-            <label for="subtipos" class="form-label">Subtipos de Seguro (Opcional)</label>
-            <div id="subtipos-container">
-                @foreach ($tipoSeguro->sub_tipo_seguros as $index => $subtipo)
-                    <div class="input-group mb-2 subtipo-item">
-                        <input type="text" name="subtipos[{{ $index }}][nombre]" class="form-control" value="{{ old('subtipos.' . $index . '.nombre', $subtipo->nombre) }}" placeholder="Nombre del Subtipo">
-                        <button type="button" class="btn btn-danger remove-subtipo">Eliminar</button>
-                    </div>
+        
+        <div>
+            <label for="id_compania">Compañía</label>
+            <select name="id_compania" id="id_compania" required>
+                <option value="">Selecciona una Compañía</option>
+                @foreach($companias as $compania)
+                    <option value="{{ $compania->id }}" {{ old('id_compania', $seguro->id_compania) == $compania->id ? 'selected' : '' }}>
+                        {{ $compania->nombre }}
+                    </option>
                 @endforeach
-            </div>
-            <button type="button" class="btn btn-primary" id="add-subtipo">Agregar Subtipo</button>
+            </select>
         </div>
 
-        {{-- Botón de envío --}}
-        <button type="submit" class="btn btn-success">Actualizar</button>
+        <div id="ramos">
+            <h3>Ramos</h3>
+            @foreach($seguro->ramos as $index => $ramo)
+                <div>
+                    <label for="nombre_ramo_{{ $index }}">Nombre del Ramo {{ $index + 1 }}</label>
+                    <input type="text" name="ramos[{{ $index }}][nombre_ramo]" id="nombre_ramo_{{ $index }}" value="{{ old('ramos.' . $index . '.nombre_ramo', $ramo->nombre_ramo) }}" required>
+                </div>
+            @endforeach
+        </div>
+
+        <button type="button" onclick="addRamo()">Agregar Otro Ramo</button>
+
+        <button type="submit">Actualizar Seguro</button>
     </form>
 </div>
 @endsection
 
 @section('js')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let subtipoIndex = {{ count($tipoSeguro->sub_tipo_seguros) }};
-        
-        // Agregar subtipo
-        document.getElementById('add-subtipo').addEventListener('click', function () {
-            const container = document.getElementById('subtipos-container');
+        let ramoCount = {{ count($seguro->ramos) }};
 
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2', 'subtipo-item');
-            div.innerHTML = `
-                <input type="text" name="subtipos[${subtipoIndex}][nombre]" class="form-control" placeholder="Nombre del Subtipo">
-                <button type="button" class="btn btn-danger remove-subtipo">Eliminar</button>
+        function addRamo() {
+            const ramoDiv = document.createElement('div');
+            ramoDiv.innerHTML = `
+                <label for="nombre_ramo_${ramoCount}">Nombre del Ramo ${ramoCount + 1}</label>
+                <input type="text" name="ramos[${ramoCount}][nombre_ramo]" id="nombre_ramo_${ramoCount}" required>
             `;
-            container.appendChild(div);
-
-            subtipoIndex++;
-        });
-
-        // Eliminar subtipo
-        document.getElementById('subtipos-container').addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-subtipo')) {
-                e.target.closest('.subtipo-item').remove();
-            }
-        });
-    });
-</script>
+            document.getElementById('ramos').appendChild(ramoDiv);
+            ramoCount++;
+        }
+    </script>
 @stop

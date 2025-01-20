@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pagos', function (Blueprint $table) {
+        Schema::create('seguros', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('compania_id')->constrained('companias')->onDelete('cascade');
+            $table->string('nombre', 255)->unique(); // Nombre del seguro
             $table->timestamps();
         });
     }
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pagos');
+        Schema::dropIfExists('seguros');
     }
 };

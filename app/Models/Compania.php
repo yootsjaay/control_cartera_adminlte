@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon|null $updated_at
  * 
  * @property Collection|Poliza[] $polizas
+ * @property Collection|Seguro[] $seguros
  *
  * @package App\Models
  */
@@ -33,5 +34,10 @@ class Compania extends Model
 	public function polizas()
 	{
 		return $this->hasMany(Poliza::class);
+	}
+
+	public function seguros()
+	{
+		return $this->hasMany(Seguro::class);
 	}
 }

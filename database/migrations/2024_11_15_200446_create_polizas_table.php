@@ -8,7 +8,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('polizas', function (Blueprint $table) {
-            $table->id();
+            $table->id(); // Esta línea es la que crea el campo 'id' de la tabla
             $table->string('numero_poliza', 100)->unique();
             $table->date('vigencia_inicio');
             $table->date('vigencia_fin');
@@ -22,8 +22,7 @@ return new class extends Migration
             // Relación con otras tablas
             $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
             $table->foreignId('compania_id')->constrained('companias')->onDelete('cascade');
-            $table->foreignId('agente_id')->constrained('agentes')->onDelete('cascade');
-            $table->foreignId('tipo_seguro_id')->constrained('tipo_seguros')->onDelete('cascade');
+            $table->foreignId('seguro_id')->constrained('seguros')->onDelete('cascade');
 
             // Índices para consultas frecuentes
             $table->index(['vigencia_inicio', 'vigencia_fin']);
@@ -35,4 +34,3 @@ return new class extends Migration
         Schema::dropIfExists('polizas');
     }
 };
-

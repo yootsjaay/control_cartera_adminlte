@@ -6,7 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PolizasController;
 use App\Http\Controllers\CompaniasController;
-use App\Http\Controllers\SegurosController;
+use App\Http\Controllers\SegurosRamoController;
 
 // Ruta principal que redirige al login
 Route::get('/', function () {
@@ -38,7 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/obtener-subtipos/{id}', [PolizasController::class, 'obtenerSubtipos']);
 
         Route::resource('/companias', CompaniasController::class);
-        Route::resource('/seguros', SegurosController::class);
+        Route::resource('/seguros', SegurosRamoController::class);
 
 
     });

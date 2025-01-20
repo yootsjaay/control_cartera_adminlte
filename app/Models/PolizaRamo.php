@@ -10,44 +10,40 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class PagosSubsecuente
+ * Class PolizaRamo
  * 
  * @property int $id
  * @property int $poliza_id
- * @property string $numero_recibo
- * @property Carbon $vigencia_desde
- * @property float $importe
- * @property Carbon $fecha_limite_pago
- * @property string $estado
+ * @property int $ramo_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * 
  * @property Poliza $poliza
+ * @property Ramo $ramo
  *
  * @package App\Models
  */
-class PagosSubsecuente extends Model
+class PolizaRamo extends Model
 {
-	protected $table = 'pagos_subsecuentes';
+	protected $table = 'poliza_ramo';
 
 	protected $casts = [
 		'poliza_id' => 'int',
-		'vigencia_desde' => 'datetime',
-		'importe' => 'float',
-		'fecha_limite_pago' => 'datetime'
+		'ramo_id' => 'int'
 	];
 
 	protected $fillable = [
 		'poliza_id',
-		'numero_recibo',
-		'vigencia_desde',
-		'importe',
-		'fecha_limite_pago',
-		'estado'
+		'ramo_id'
 	];
 
 	public function poliza()
 	{
 		return $this->belongsTo(Poliza::class);
+	}
+
+	public function ramo()
+	{
+		return $this->belongsTo(Ramo::class);
 	}
 }

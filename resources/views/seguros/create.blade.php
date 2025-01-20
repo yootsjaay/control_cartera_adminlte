@@ -45,71 +45,53 @@
     @endif
 
     <div class="form-container">
-        <form action="{{ route('seguros.store') }}" method="POST">
-            @csrf
+    <form action="{{ route('seguros.store') }}" method="POST">
+        @csrf
+        <div>
+            <label for="nombre">Nombre del Seguro</label>
+            <input type="text" name="nombre" id="nombre" value="{{ old('nombre') }}" required>
+        </div>
+        
+        <div>
+            <label for="compania_id">Compañía</label>
+            <select name="compania_id" id="compania_id" required>
+                <option value="">Selecciona una Compañía</option>
+                @foreach($companias as $compania)
+                    <option value="{{ $compania->id }}" {{ old('compania_id') == $compania->id ? 'selected' : '' }}>
+                        {{ $compania->nombre }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-            {{-- Tipo de seguro --}}
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre del Tipo de Seguro</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ old('nombre') }}" required>
+        <div id="ramos">
+            <h3>Ramos</h3>
+            <div>
+                <label for="nombre_ramo_0">Nombre del Ramo</label>
+                <input type="text" name="ramos[0][nombre_ramo]" id="nombre_ramo_0" required>
             </div>
+        </div>
 
-            {{-- Subtipos dinámicos --}}
-            <div class="mb-3">
-                <label for="subtipos" class="form-label">Subtipos de Seguro (Opcional)</label>
-                <div id="subtipos-container">
-                    {{-- Plantilla de subtipo inicial --}}
-                    <div class="input-group mb-2 subtipo-item">
-                        <input type="text" name="subtipos[0][nombre]" class="form-control" placeholder="Nombre del Subtipo">
-                        <button type="button" class="btn btn-danger remove-subtipo">Eliminar</button>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-primary mt-2" id="add-subtipo">Agregar Subtipo</button>
-            </div>
+        <button type="button" onclick="addRamo()">Agregar Otro Ramo</button>
 
-            {{-- Botón de envío --}}
-            <button type="submit" class="btn btn-success">Guardar</button>
-        </form>
+        <button type="submit">Guardar Seguro</button>
+    </form>
     </div>
 </div>
 @endsection
 
 @section('js')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let subtipoIndex = 1;
+        let ramoCount = 1;
 
-        // Agregar subtipo
-        document.getElementById('add-subtipo').addEventListener('click', function () {
-            const container = document.getElementById('subtipos-container');
-
-            const div = document.createElement('div');
-            div.classList.add('input-group', 'mb-2', 'subtipo-item');
-            div.innerHTML = `
-                <input type="text" name="subtipos[${subtipoIndex}][nombre]" class="form-control" placeholder="Nombre del Subtipo">
-                <button type="button" class="btn btn-danger remove-subtipo">Eliminar</button>
+        function addRamo() {
+            const ramoDiv = document.createElement('div');
+            ramoDiv.innerHTML = `
+                <label for="nombre_ramo_${ramoCount}">Nombre del Ramo ${ramoCount + 1}</label>
+                <input type="text" name="ramos[${ramoCount}][nombre_ramo]" id="nombre_ramo_${ramoCount}" required>
             `;
-            container.appendChild(div);
-
-            subtipoIndex++;
-        });
-
-        // Eliminar subtipo y mantener el índice sincronizado
-        document.getElementById('subtipos-container').addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-subtipo')) {
-                const item = e.target.closest('.subtipo-item');
-                item.remove();
-
-                // Reindexar los nombres de los inputs
-                const subtipoItems = document.querySelectorAll('.subtipo-item');
-                subtipoItems.forEach((item, index) => {
-                    const input = item.querySelector('input');
-                    input.name = `subtipos[${index}][nombre]`;
-                });
-
-                subtipoIndex = subtipoItems.length; // Actualizar el índice
-            }
-        });
-    });
-</script>
+            document.getElementById('ramos').appendChild(ramoDiv);
+            ramoCount++;
+        }
+    </script>
 @stop

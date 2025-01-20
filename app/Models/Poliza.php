@@ -25,14 +25,12 @@ use Illuminate\Database\Eloquent\Model;
  * @property Carbon|null $updated_at
  * @property int $cliente_id
  * @property int $compania_id
- * @property int $agente_id
- * @property int $tipo_seguro_id
+ * @property int $seguro_id
  * 
- * @property Agente $agente
  * @property Cliente $cliente
  * @property Compania $compania
- * @property TipoSeguro $tipo_seguro
- * @property Collection|PagosSubsecuente[] $pagos_subsecuentes
+ * @property Seguro $seguro
+ * @property Collection|Ramo[] $ramos
  *
  * @package App\Models
  */
@@ -46,8 +44,7 @@ class Poliza extends Model
 		'total_a_pagar' => 'float',
 		'cliente_id' => 'int',
 		'compania_id' => 'int',
-		'agente_id' => 'int',
-		'tipo_seguro_id' => 'int'
+		'seguro_id' => 'int'
 	];
 
 	protected $fillable = [
@@ -60,14 +57,8 @@ class Poliza extends Model
 		'status',
 		'cliente_id',
 		'compania_id',
-		'agente_id',
-		'tipo_seguro_id'
+		'seguro_id'
 	];
-
-	public function agente()
-	{
-		return $this->belongsTo(Agente::class);
-	}
 
 	public function cliente()
 	{
@@ -79,13 +70,15 @@ class Poliza extends Model
 		return $this->belongsTo(Compania::class);
 	}
 
-	public function tipo_seguro()
+	public function seguro()
 	{
-		return $this->belongsTo(TipoSeguro::class);
+		return $this->belongsTo(Seguro::class);
 	}
 
-	public function pagos_subsecuentes()
+	public function ramos()
 	{
-		return $this->hasMany(PagosSubsecuente::class);
+		return $this->belongsToMany(Ramo::class)
+					->withPivot('id')
+					->withTimestamps();
 	}
 }
